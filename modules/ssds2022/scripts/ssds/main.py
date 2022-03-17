@@ -37,7 +37,7 @@ def getMeshs():
         apiType = dagPath.apiType()
         if apiType != om.MFn.kTransform:
             continue
-        for c in xrange(dagPath.childCount()):
+        for c in range(dagPath.childCount()):
             child = dagPath.child(c)
             if child.apiType() != om.MFn.kMesh:
                 continue
@@ -82,8 +82,8 @@ def concatenateNeighborLists(meshPaths):
         mesh = om.MFnMesh(path)
         _, indices = mesh.getTriangles()
         offset = len(neighbor)
-        neighbor = neighbor + [set() for v in xrange(mesh.numVertices)]
-        for l in xrange(len(indices) / 3):
+        neighbor = neighbor + [set() for v in range(mesh.numVertices)]
+        for l in range(len(indices) / 3):
             i0 = indices[l * 3 + 0] + offset
             i1 = indices[l * 3 + 1] + offset
             i2 = indices[l * 3 + 2] + offset
@@ -94,10 +94,10 @@ def concatenateNeighborLists(meshPaths):
             neighbor[i2].add(i0)
             neighbor[i2].add(i1)
     maxlen = 0
-    for i in xrange(len(neighbor)):
+    for i in range(len(neighbor)):
         maxlen = max(maxlen, len(neighbor[i]))
     retval = -np.ones([len(neighbor), maxlen], dtype = np.longlong)
-    for i in xrange(len(neighbor)):
+    for i in range(len(neighbor)):
         retval[i, 0:len(neighbor[i])] = sorted(neighbor[i])
     return retval
 
@@ -150,7 +150,7 @@ def bindToSkin(meshPaths, skinIndex, skinWeight,
         skinObj = om.MGlobal.getSelectionListByName(skinName).getDependNode(0)
         skin = oma.MFnSkinCluster(skinObj)
         vertexIndices = om.MIntArray(mesh.numVertices, 0)
-        for i in xrange(mesh.numVertices):
+        for i in range(mesh.numVertices):
             vertexIndices[i] = i
         singleIndexedComp = om.MFnSingleIndexedComponent()
         vertexComp = singleIndexedComp.create(om.MFn.kMeshVertComponent)
@@ -158,10 +158,10 @@ def bindToSkin(meshPaths, skinIndex, skinWeight,
         infDags = skin.influenceObjects()
         numInfDags = len(infDags)
         infIndices = om.MIntArray(numInfDags, 0)
-        for i in xrange(numInfDags):
+        for i in range(numInfDags):
             infIndices[i] = i
         weights = om.MDoubleArray(mesh.numVertices * numInfDags, 0)
-        for v in xrange(mesh.numVertices):
+        for v in range(mesh.numVertices):
             for j, w in zip(skinIndex[offset + v], skinWeight[offset + v]):
                 if j >= 0:
                     weights[v * numInfDags + j] = w
@@ -287,7 +287,7 @@ def build(minNumJoints = 1,
                 njnts = native.clusterVerticesPcenter(pinput, poutput, ttype)
             else:
                 njnts = native.clusterVerticesAdaptive(pinput, poutput, ttype)
-            for it in xrange(numIterations):
+            for it in range(numIterations):
                 native.updateSkinWeight(pinput, poutput, smoothness)
                 native.updateJointTransform(pinput, poutput, ttype)
                 cmds.progressBar(pbar, edit = True, step = 1, status = 'Iteration - ' + str(it + 1) + '/' + str(numIterations))
@@ -298,7 +298,7 @@ def build(minNumJoints = 1,
             clusterCenter = np.zeros([njnts, 3])
             native.retrieveResult(pinput, poutput,
                                   si, sw, sm, clusterCenter)
-            for v in xrange(numVertices):
+            for v in range(numVertices):
                 sw[v] = np.maximum(0.0, sw[v])
                 sw[v] /= np.sum(sw[v])
             native.release(pinput, poutput)
@@ -317,7 +317,7 @@ def build(minNumJoints = 1,
     # joint creation
     dagModifier = om.MDagModifier()
     skinJoints = []
-    for c in xrange(maxNumJoints):
+    for c in range(maxNumJoints):
         newJnt = SkinJoint()
         newJnt.name = 'ssds:Joint' + str(c + 1).zfill(2)
         newJnt.bindPose = np.eye(4)
