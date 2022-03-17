@@ -83,7 +83,7 @@ def concatenateNeighborLists(meshPaths):
         _, indices = mesh.getTriangles()
         offset = len(neighbor)
         neighbor = neighbor + [set() for v in range(mesh.numVertices)]
-        for l in range(len(indices) / 3):
+        for l in range(int(len(indices) / 3)):
             i0 = indices[l * 3 + 0] + offset
             i1 = indices[l * 3 + 1] + offset
             i2 = indices[l * 3 + 2] + offset
