@@ -393,7 +393,7 @@ static PyObject* updateJointTransform(PyObject *self, PyObject *args)
 {
     PyObject* pin            = PyTuple_GET_ITEM(args, 0);
     PyObject* pout           = PyTuple_GET_ITEM(args, 1);
-    const long transformType = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
+    const long transformType = PyLong_AsLong(PyTuple_GET_ITEM(args, 2));
     Input* const input   = reinterpret_cast<Input*>(PyCapsule_GetPointer(pin, "SSDSInput"));
     Output* const output = reinterpret_cast<Output*>(PyCapsule_GetPointer(pout, "SSDSOutput"));
     updateJointTransformProc(*output, transformType, *input);
@@ -491,7 +491,7 @@ public:
         for (int v = range.begin(); v != range.end(); ++v)
         {
             const std::vector<int>& vertCluster = output->vertCluster[v];
-            const int numActJoints = vertCluster.size();
+            const long numActJoints = vertCluster.size();
             Eigen::MatrixXd basis   = Eigen::MatrixXd::Zero(numActJoints, numSamples * 3);
             Eigen::VectorXd laplacm = Eigen::VectorXd::Zero(numActJoints);
             Eigen::VectorXd laplacv = Eigen::VectorXd::Zero(numActJoints);
@@ -803,7 +803,7 @@ static PyObject* clusterVerticesPcenter(PyObject* self, PyObject* args)
 {
     PyObject* pin = PyTuple_GET_ITEM(args, 0);
     PyObject* pout = PyTuple_GET_ITEM(args, 1);
-    const long transformType = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
+    const long transformType = PyLong_AsLong(PyTuple_GET_ITEM(args, 2));
     const Input& input = *reinterpret_cast<Input*>(PyCapsule_GetPointer(pin, "SSDSInput"));
     Output& output = *reinterpret_cast<Output*>(PyCapsule_GetPointer(pout, "SSDSOutput"));
     const long& numIndices = output.numIndices;
@@ -875,14 +875,14 @@ static PyObject* clusterVerticesPcenter(PyObject* self, PyObject* args)
     }
     detectNeighborClusters(input, output);
     updateJointTransformProc(output, transformType, input);
-    return PyInt_FromLong(output.numJoints);
+    return PyLong_FromLong(output.numJoints);
 }
 
 static PyObject* clusterVerticesAdaptive(PyObject *self, PyObject *args)
 {
     PyObject* pin            = PyTuple_GET_ITEM(args, 0);
     PyObject* pout           = PyTuple_GET_ITEM(args, 1);
-    const long transformType = PyInt_AsLong(PyTuple_GET_ITEM(args, 2));
+    const long transformType = PyLong_AsLong(PyTuple_GET_ITEM(args, 2));
     const Input& input = *reinterpret_cast<Input*>(PyCapsule_GetPointer(pin, "SSDSInput"));
     Output& output     = *reinterpret_cast<Output*>(PyCapsule_GetPointer(pout, "SSDSOutput"));
     const long& numIndices = output.numIndices;
@@ -951,7 +951,7 @@ static PyObject* clusterVerticesAdaptive(PyObject *self, PyObject *args)
         MGlobal::displayInfo(buf);
     }
     detectNeighborClusters(input, output);
-    return PyInt_FromLong(output.numJoints);
+    return PyLong_FromLong(output.numJoints);
 }
 #pragma endregion
 
@@ -961,9 +961,9 @@ static PyObject* initialize(PyObject *self, PyObject *args)
     PyArrayObject* initPos          = reinterpret_cast<PyArrayObject*>(PyTuple_GET_ITEM(args, 0));
     PyArrayObject* shapeSample      = reinterpret_cast<PyArrayObject*>(PyTuple_GET_ITEM(args, 1));
     PyArrayObject* neighborVertices = reinterpret_cast<PyArrayObject*>(PyTuple_GET_ITEM(args, 2));
-    const long numJoints            = PyInt_AsLong(PyTuple_GET_ITEM(args, 3));
-    const long numIndices           = PyInt_AsLong(PyTuple_GET_ITEM(args, 4));
-    const long numRings             = PyInt_AsLong(PyTuple_GET_ITEM(args, 5));
+    const long numJoints            = PyLong_AsLong(PyTuple_GET_ITEM(args, 3));
+    const long numIndices           = PyLong_AsLong(PyTuple_GET_ITEM(args, 4));
+    const long numRings             = PyLong_AsLong(PyTuple_GET_ITEM(args, 5));
     const long numVertices = static_cast<long>(initPos->dimensions[0]);
     const long numSamples  = static_cast<long>(shapeSample->dimensions[0]);
     // allocation
@@ -1124,9 +1124,47 @@ static PyMethodDef methods[] = {
 	{ NULL, NULL, 0, NULL }
 };
 
+/*
 PyMODINIT_FUNC initnative(void)
 {
-    Py_InitModule("native", methods);
+    PyModule_Create("native", methods);
     import_array();
-	Eigen::initParallel();
+    Eigen::initParallel();
+
+}
+*/
+
+static struct PyModuleDef native = {
+    PyModuleDef_HEAD_INIT,
+    "native",   /* name of module */
+    NULL, /* module documentation, may be NULL */
+    -1,       /* size of per-interpreter state of the module,
+                 or -1 if the module keeps state in global variables. */
+    methods
+};
+
+PyMODINIT_FUNC PyInit_native(void)
+{
+    PyObject *m;
+
+    // PyModule_Create("native", methods);
+    // import_array();
+    // Eigen::initParallel();
+
+    m = PyModule_Create(&native);
+    if (m == NULL)
+        return NULL;
+
+    /*
+    SpamError = PyErr_NewException("spam.error", NULL, NULL);
+    Py_XINCREF(SpamError);
+    if (PyModule_AddObject(m, "error", SpamError) < 0) {
+        Py_XDECREF(SpamError);
+        Py_CLEAR(SpamError);
+        Py_DECREF(m);
+        return NULL;
+    }
+    */
+
+    return m;
 }
